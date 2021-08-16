@@ -23,51 +23,6 @@ def laplaciano2(matriz):
     return y
 
 
-def laplaciano4(matriz):
-    #f_xx = (-1*f[i-2]+16*f[i-1]-30*f[i+0]+16*f[i+1]-1*f[i+2])/(12*1.0*h**2)
-    M = matriz.shape[0]
-    N = matriz.shape[1]
-    lap = np.zeros((M+4, N+4))
-    lap[2:-2, 2:-2] = -60 * matriz
-
-    lap[0:-4, 2:-2] += -1 * matriz
-    lap[1:-3, 2:-2] += 16 * matriz
-    lap[3:-1, 2:-2] += 16 * matriz
-    lap[4:, 2:-2] += -1 * matriz
-
-    lap[2:-2, 0:-4] += -1 * matriz
-    lap[2:-2, 1:-3] += 16 * matriz
-    lap[2:-2, 3:-1] += 16 * matriz
-    lap[2:-2, 4:] += -1 * matriz
-
-    y = lap[2:-2, 2:-2]
-    return y/12
-
-
-def laplaciano6(matriz):
-    #f_xx = (2*f[i-3]-27*f[i-2]+270*f[i-1]-490*f[i+0]+270*f[i+1]-27*f[i+2]+2*f[i+3])/(180*1.0*h**2)
-    M = matriz.shape[0]
-    N = matriz.shape[1]
-    lap = np.zeros((M+6, N+6))
-    lap[3:-3, 3:-3] = -490 * matriz
-
-    lap[0:-6, 3:-3] += 2 * matriz
-    lap[1:-5, 3:-3] += -27 * matriz
-    lap[2:-4, 3:-3] += 270 * matriz
-    lap[4:-2, 3:-3] += 270 * matriz
-    lap[5:-1, 3:-3] += -27 * matriz
-    lap[6:, 3:-3] += 2 * matriz
-
-    lap[3:-3, 0:-6] += 2 * matriz
-    lap[3:-3, 1:-5] += -27 * matriz
-    lap[3:-3, 2:-4] += 270 * matriz
-    lap[3:-3, 4:-2] += 270 * matriz
-    lap[3:-3, 5:-1] += -27 * matriz
-    lap[3:-3, 6:] += 2 * matriz
-
-    y = lap[3:-3, 3:-3]
-    return y/180
-
 
 def gera_video_otimizacao(nome, nit):
     metadata = dict(title='Simulação Ultrassom', author='Daniel Rossato')
@@ -118,8 +73,6 @@ y_trans = 25
 
 # Inicialização dos vetores
 u2 = np.zeros((Nx, Ny, Nt))  # u usando Laplaciano accuracy 2
-u4 = np.zeros((Nx, Ny, Nt))  # u usando Laplaciano accuracy 4
-u6 = np.zeros((Nx, Ny, Nt))  # u usando Laplaciano accuracy 6
 V = np.zeros((Nx, Ny, Nt))  # Vij = ut ij 0 (derivada da condição inicial)
 
 # Condições iniciais
@@ -164,47 +117,7 @@ simulation_time1 = time.time()
 tsim2 = simulation_time1 - start_time
 print(f"Tempo para fazer a simulacao Laplaciano accuracy 2: {tsim2}")
 
-# Com Laplaciano accuracy 4
-# Primeiro passo
-u4[:, :, 1] = u4[:, :, 0] + ts * V[:, :, 0] + 0.5 * C2 * laplaciano4(u4[:, :, 0])\
-    + 0.5 * ts ** 2 * termo_fonte[:, :, 0]
 
-# Encontrar cada ponto no array de posições para cada tempo
-for n in range(1, Nt-1):
-    # Encontrar cada ponto no array de posições t[n+1]
-    u4[:, :, n + 1] = 2 * u4[:, :, n] - u4[:, :, n - 1] + C2 * laplaciano4(u4[:, :, n]) \
-       + termo_fonte[:, :, n]
-
-    # Garantir condições nas bordas
-    u4[0, :, n + 1] = 0
-    u4[Nx - 1, :, n + 1] = 0
-    u4[:, 0, n + 1] = 0
-    u4[:, Ny - 1, n + 1] = 0
-
-simulation_time2 = time.time()
-tsim4 = simulation_time2 - simulation_time1
-print(f"Tempo para fazer a simulacao Laplaciano accuracy 4: {tsim4}")
-
-# Com Laplaciano accuracy 6
-# Primeiro passo
-u6[:, :, 1] = u6[:, :, 0] + ts * V[:, :, 0] + 0.5 * C2 * laplaciano6(u6[:, :, 0])\
-    + 0.5 * ts ** 2 * termo_fonte[:, :, 0]
-
-# Encontrar cada ponto no array de posições para cada tempo
-for n in range(1, Nt-1):
-    # Encontrar cada ponto no array de posições t[n+1]
-    u6[:, :, n + 1] = 2 * u6[:, :, n] - u6[:, :, n - 1] + C2 * laplaciano6(u6[:, :, n]) \
-       + termo_fonte[:, :, n]
-
-    # Garantir condições nas bordas
-    u6[0, :, n + 1] = 0
-    u6[Nx - 1, :, n + 1] = 0
-    u6[:, 0, n + 1] = 0
-    u6[:, Ny - 1, n + 1] = 0
-
-simulation_time3 = time.time()
-tsim6 = simulation_time3 - simulation_time2
-print(f"Tempo para fazer a simulacao Laplaciano accuracy 6: {tsim6}")
 
 # nomes arquivos
 video_name = 'Pulso Gaussiano - Laplaciano 2 e 4'
@@ -213,7 +126,6 @@ video_name = 'Pulso Gaussiano - Laplaciano 2 e 4'
 gera_video_otimizacao(video_name, Nt)
 
 video_time = time.time()
-tvid = video_time - simulation_time3
 print(f"Tempo para fazer o video: {tvid}")
 
 end_time = time.time()
