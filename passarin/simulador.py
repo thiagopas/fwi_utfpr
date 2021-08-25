@@ -53,8 +53,6 @@ def lap4(matriz):
 
 def simulacao(meio, termo_fonte=None, h=200e-6, ts=10e-9):
     # Dados da simulação
-    #cmax = 5800  # Velocidade máxima no meio (aço)
-    #cmax = 1500  # Velocidade máxima no meio (água do mar)
 
     # C = cmax*ts/h  # Condição CFL
 
@@ -77,13 +75,7 @@ def simulacao(meio, termo_fonte=None, h=200e-6, ts=10e-9):
         # Termo de fonte
         t = np.arange(0, Nt, dtype=float)
         t = t * ts
-        #f = np.zeros((1, Nt))
-        #f[0,0:50] = 1
         f = signal.gausspulse(t-1.5e-6, 2.5e6, 0.5)
-        #plt.ioff()
-        #plt.figure()
-        #plt.plot(t, f)
-        #plt.show()
         termo_fonte = np.zeros((Nx, Ny, Nt))
         termo_fonte[y_trans, x_trans, :] = f
 
@@ -112,14 +104,6 @@ def simulacao(meio, termo_fonte=None, h=200e-6, ts=10e-9):
         u4[:, 0, n + 1] = 0
         u4[:, Ny - 1, n + 1] = 0
 
-    simulation_time2 = time.time()
-    tsim4 = simulation_time2 - start_time
-    print(f"Tempo para fazer a simulacao Laplaciano accuracy 4: {tsim4}")
-
-    end_time = time.time()
-    total_time = end_time - start_time
-    print(f"Tempo total: {total_time}")
-
     return u4
 
 # Matriz que representa o meio
@@ -138,8 +122,9 @@ meio = np.ones((Nx, Ny))*5000.
 
 maxit = 70
 dist = np.zeros(maxit, dtype=float)
-for n in range(100):
-    print('Simulation ' + str(n) + ' of ' + str(maxit))
+t_old = time.time()
+for n in range(maxit):
+    print('Iteration ' + str(n) + ' of ' + str(maxit))
     u_guess = simulacao(meio, h=h, ts=ts)
     u_res = u_guess - u_true
     u_adj = simulacao(meio, termo_fonte=u_res, h=h, ts=ts)
@@ -149,6 +134,11 @@ for n in range(100):
     difference = meio - meio_true
     difference[25, 50] = 0
     dist[n] = np.linalg.norm(difference)
+
+    t_now = time.time()
+    t_dif = t_now - t_old
+    print('Elapsed time: ' + str(t_dif) + '. Estimated time: ' + str((maxit-n)*t_dif))
+    t_old = t_now
 plt.figure()
 plt.subplot(121)
 plt.imshow(meio_true, vmin=2000, vmax=7000)
