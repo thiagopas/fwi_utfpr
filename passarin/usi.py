@@ -141,7 +141,7 @@ def add_noise(u, db):
     return u + s*np.random.randn(*u.shape)
 
 u0_clean = simulate(c, s, xzs)
-u0 = add_noise(u0_clean, 40)
+u0 = add_noise(u0_clean, 1e10)
 # play(u0_clean)
 
 #%%
